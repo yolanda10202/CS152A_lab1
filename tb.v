@@ -8,6 +8,10 @@ module tb;
    reg       btnR;
    
    integer   i;
+   integer   j;
+   
+   // instructions is an array of 1024 elements, each element contains 8 bits
+   reg [7:0] instructions [1023:0];
    
    /*AUTOWIRE*/
    // Beginning of automatic wires (for undeclared instantiated-module outputs)
@@ -27,15 +31,28 @@ module tb;
         #1000 btnR = 0;
         #1500000;
         
-        tskRunPUSH(0,4);
-        tskRunPUSH(0,0);
-        tskRunPUSH(1,3);
-        tskRunMULT(0,1,2);
-        tskRunADD(2,0,3);
-        tskRunSEND(0);
-        tskRunSEND(1);
-        tskRunSEND(2);
-        tskRunSEND(3);
+        // initialize instructions[]
+        for(j = 0; j < 1024; j = j+1)
+           instructions[j] = 0;
+        
+        // read from seq.code
+        $readmemb("seq.code", instructions);
+        
+        // run each instruction
+        // note: first line contains the number of instructions we have
+        for (j < 1; j < instructions[0]+1; j = j+1)
+           tskRunInst(instructions[j]);
+        
+        // don't need these instructions anymore if using seq.code
+//         tskRunPUSH(0,4);
+//         tskRunPUSH(0,0);
+//         tskRunPUSH(1,3);
+//         tskRunMULT(0,1,2);
+//         tskRunADD(2,0,3);
+//         tskRunSEND(0);
+//         tskRunSEND(1);
+//         tskRunSEND(2);
+//         tskRunSEND(3);
         
         #1000;        
         $finish;
