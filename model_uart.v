@@ -15,6 +15,12 @@ module model_uart(/*AUTOARG*/
    parameter name    = "UART0";
    
    reg [7:0] rxData;
+   // buff will store the 4 numbers we want
+   // e.g. if we want to print "0003\n", buff will store 0x0003
+   reg [31:0] buff;
+   // count will keep track of how many numbers we currently added
+   reg [2:0] count;
+   
    event     evBit;
    event     evByte;
    event     evTxBit;
@@ -24,6 +30,8 @@ module model_uart(/*AUTOARG*/
    initial
      begin
         TX = 1'b1;
+        buff = 32'b00000000000000000000000000000000;
+        count = 3'b000;
      end
    
    always @ (negedge RX)
@@ -37,7 +45,21 @@ module model_uart(/*AUTOARG*/
              rxData[7:0] = {RX,rxData[7:1]};
           end
         ->evByte;
-        $display ("%d %s Received byte %02x (%s)", $stime, name, rxData, rxData);
+        
+        // updating buff so that it contains the new data in [7:0]
+        // shift left by 8 so we can use the 8 lsb bits to store new data
+        buff <= buff << 8;
+        // place the new data to the 8 lsb bits
+        buff[7:0] <= rxData[7:0];
+        count <= count + 1;
+        
+        // if we have filled the buff, we print and reset 
+        if (count == 3'b100)
+        begin
+            $display ("%d %s Received bytes:(%s%s%s%s)", $stime, name, 
+                      buff[31:24], buff[23:16], buff[15:8], buff[7:0]);
+            count <= 0;
+        end
      end
 
    task tskRxData;
