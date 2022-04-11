@@ -53,6 +53,14 @@ module model_uart(/*AUTOARG*/
         buff[7:0] <= rxData[7:0];
         count <= count + 1;
         
+        if (rxData[7:0] == 10 || rxData[7:0] == 13)
+        begin
+           $display ("%d %s Received bytes:(%s%s%s%s)", $stime, name, 
+                      buff[31:24], buff[23:16], buff[15:8], buff[7:0]);
+           count <= 0;
+           buff <= 0;
+        end
+        
         // if we have filled the buff, we print and reset 
         if (count == 3'b100)
         begin
