@@ -46,28 +46,36 @@ module model_uart(/*AUTOARG*/
           end
         ->evByte;
         
-        // updating buff so that it contains the new data in [7:0]
-        // shift left by 8 so we can use the 8 lsb bits to store new data
-        buff <= buff << 8;
-        // place the new data to the 8 lsb bits
-        buff[7:0] <= rxData[7:0];
-        count <= count + 1;
-        
-        if (rxData[7:0] == 10 || rxData[7:0] == 13)
+		  if ((rxData[7:0] == 10 || rxData[7:0] == 13) && (buff != 0))
         begin
+		     //$display("rxData: %s", rxData);
            $display ("%d %s Received bytes:(%s%s%s%s)", $stime, name, 
                       buff[31:24], buff[23:16], buff[15:8], buff[7:0]);
            count <= 0;
            buff <= 0;
         end
-        
-        // if we have filled the buff, we print and reset 
-        if (count == 3'b100)
-        begin
-            $display ("%d %s Received bytes:(%s%s%s%s)", $stime, name, 
-                      buff[31:24], buff[23:16], buff[15:8], buff[7:0]);
-            count <= 0;
-        end
+		  else
+		  begin
+			  // updating buff so that it contains the new data in [7:0]
+			  // shift left by 8 so we can use the 8 lsb bits to store new data
+			  buff <= buff << 8;
+			  // place the new data to the 8 lsb bits
+			  buff[7:0] <= rxData[7:0];
+			  count <= count + 1;
+			  
+			  
+			  
+			  // if we have filled the buff, we print and reset 
+			  /*
+			  if (count == 3'b100)
+			  begin
+					$display ("%d %s Received bytes:(%s%s%s%s)", $stime, name, 
+								 buff[31:24], buff[23:16], buff[15:8], buff[7:0]);
+					$display("hello2\n");
+					count <= 0;
+			  end
+			  */
+		  end
      end
 
    task tskRxData;
